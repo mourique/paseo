@@ -33,12 +33,12 @@ describe("paseo config schema", () => {
     });
   });
 
-  it("rejects an invalid browser default URL", () => {
-    expect(() =>
-      PaseoConfigRawSchema.parse({
-        browser: { defaultUrl: "not a URL" },
-      }),
-    ).toThrow();
+  it("reports an invalid browser default URL without throwing", () => {
+    const parsed = PaseoConfigRawSchema.safeParse({
+      browser: { defaultUrl: "not a URL" },
+    });
+
+    expect(parsed.success).toBe(false);
   });
 
   it("rejects a browser default URL with an unsupported protocol", () => {
@@ -69,6 +69,23 @@ describe("paseo config schema", () => {
     expect(() =>
       PaseoConfigRawSchema.parse({ worktree: { servicePorts: { range: "4000-3000" } } }),
     ).toThrow("Expected an inclusive TCP port range");
+  });
+
+  it("drops an invalid browser default without dropping valid runtime config", () => {
+    expect(
+      PaseoConfigSchema.parse({
+        browser: { defaultUrl: "file:///tmp/index.html" },
+        worktree: { setup: "npm install" },
+        scripts: {
+          dev: { type: "service", command: "npm run dev" },
+        },
+      }),
+    ).toEqual({
+      worktree: { setup: ["npm install"], teardown: [] },
+      scripts: {
+        dev: { type: "service", command: "npm run dev" },
+      },
+    });
   });
 
   it("normalizes partial worktree lifecycle config without dropping present commands", () => {

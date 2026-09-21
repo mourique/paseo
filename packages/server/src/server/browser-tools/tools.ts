@@ -28,6 +28,7 @@ export interface RegisterBrowserToolsOptions {
   broker: Pick<BrowserToolsBroker, "execute">;
   callerAgentId?: string;
   resolveCallerAgent: () => CallerAgentContext | null;
+  resolveWorkspaceDirectory: (workspaceId: string | undefined) => Promise<string | null>;
 }
 
 const HTTP_URL_ONLY_MESSAGE = "URL must use http/https only";
@@ -108,7 +109,8 @@ export function registerBrowserTools(options: RegisterBrowserToolsOptions): void
       if (missingWorkspace) {
         return missingWorkspace;
       }
-      const defaultUrl = url ?? readBrowserDefaultUrl(context.cwd);
+      const workspaceDirectory = await options.resolveWorkspaceDirectory(context.workspaceId);
+      const defaultUrl = url ?? readBrowserDefaultUrl(workspaceDirectory ?? context.cwd);
       const payload = await options.broker.execute({
         agentId: context.agentId,
         cwd: context.cwd,

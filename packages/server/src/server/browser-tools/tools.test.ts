@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
@@ -51,6 +51,7 @@ class BrowserToolHarness {
       workspaceId: "wks_workspace_a",
     },
     private readonly callerAgentId: string | null = "agent-1",
+    private readonly workspaceDirectory: string | null = callerAgent?.cwd ?? null,
   ) {
     registerBrowserTools({
       registerTool: (name, config, handler) => {
@@ -59,6 +60,7 @@ class BrowserToolHarness {
       broker: this.broker as Pick<BrowserToolsBroker, "execute">,
       ...(this.callerAgentId ? { callerAgentId: this.callerAgentId } : {}),
       resolveCallerAgent: () => this.callerAgent,
+      resolveWorkspaceDirectory: async () => this.workspaceDirectory,
     });
   }
 
@@ -632,6 +634,45 @@ describe("registerBrowserTools", () => {
           cwd: workspaceDirectory,
           workspaceId: "wks_workspace_a",
           command: { command: "new_tab", args: { url: "https://app.example.test" } },
+        },
+      ]);
+    } finally {
+      rmSync(workspaceDirectory, { recursive: true, force: true });
+    }
+  });
+
+  test("new tab reads the default from the workspace when the agent runs in a subdirectory", async () => {
+    const workspaceDirectory = mkdtempSync(join(tmpdir(), "paseo-browser-tool-workspace-"));
+    const agentDirectory = join(workspaceDirectory, "packages", "app");
+    mkdirSync(agentDirectory, { recursive: true });
+    writeFileSync(
+      join(workspaceDirectory, "paseo.json"),
+      `${JSON.stringify({ browser: { defaultUrl: "https://workspace.example.test" } })}\n`,
+    );
+
+    try {
+      const harness = new BrowserToolHarness(
+        {
+          id: "agent-1",
+          cwd: agentDirectory,
+          workspaceId: "wks_workspace_a",
+        },
+        "agent-1",
+        workspaceDirectory,
+      );
+      harness.broker.setResponse(newTabPayload());
+
+      await harness.execute("browser_new_tab", {});
+      await harness.execute("browser_new_tab", { url: "https://explicit.example.test" });
+
+      expect(harness.broker.calls.map((call) => call.command)).toEqual([
+        {
+          command: "new_tab",
+          args: { url: "https://workspace.example.test" },
+        },
+        {
+          command: "new_tab",
+          args: { url: "https://explicit.example.test" },
         },
       ]);
     } finally {
