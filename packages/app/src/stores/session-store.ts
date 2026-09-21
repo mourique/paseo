@@ -109,6 +109,7 @@ export interface WorkspaceDescriptor {
   projectCustomName?: string | null;
   projectCustomIconRevision?: string | null;
   projectRootPath: string;
+  browserDefaultUrl?: WorkspaceDescriptorPayload["browserDefaultUrl"];
   workspaceDirectory: string;
   worktreeSlug?: WorkspaceDescriptorPayload["worktreeSlug"];
   projectKind: WorkspaceDescriptorPayload["projectKind"];
@@ -143,6 +144,7 @@ export function normalizeWorkspaceDescriptor(
     projectCustomName: payload.projectCustomName ?? null,
     projectCustomIconRevision: payload.projectCustomIconRevision ?? null,
     projectRootPath: payload.projectRootPath,
+    browserDefaultUrl: payload.browserDefaultUrl,
     // Canonicalize the workspace directory once, at the store boundary, so every
     // consumer can read workspace.workspaceDirectory directly. Empty means "no
     // usable directory" (older daemons may omit it; the wire field is optional).

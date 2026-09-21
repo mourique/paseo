@@ -64,6 +64,7 @@ import {
 import { respondToAgentPermission } from "./agent/permission-response.js";
 import type { VoiceCallerContext, VoiceSpeakHandler } from "./voice-types.js";
 import type { ScriptHealthState } from "./script-health-monitor.js";
+import { readPaseoConfigForProjection } from "./script-status-projection.js";
 import { spawnWorkspaceScript } from "./worktree-bootstrap.js";
 import type { WorkspaceScriptRuntimeStore } from "./workspace-script-runtime-store.js";
 import {
@@ -658,6 +659,14 @@ interface ClientActivity {
   lastActivityAt: Date;
   appVisible: boolean;
   appVisibilityChangedAt: Date;
+}
+
+function buildBrowserDefaultUrlProjection(
+  workspaceDirectory: string,
+  logger: pino.Logger,
+): Pick<WorkspaceDescriptorPayload, "browserDefaultUrl"> {
+  const defaultUrl = readPaseoConfigForProjection(workspaceDirectory, logger)?.browser?.defaultUrl;
+  return defaultUrl ? { browserDefaultUrl: defaultUrl } : {};
 }
 
 export class Session {
@@ -5506,6 +5515,7 @@ export class Session {
       workspace.isPaseoOwnedWorktree && workspace.worktreeRoot
         ? basename(workspace.worktreeRoot)
         : undefined;
+    const browserDefaultUrl = buildBrowserDefaultUrlProjection(workspace.cwd, this.sessionLogger);
 
     return {
       id: workspace.workspaceId,
@@ -5516,6 +5526,7 @@ export class Session {
       projectCustomName: resolvedProjectRecord?.customName ?? null,
       projectCustomIconRevision: resolvedProjectRecord?.customIconRevision ?? null,
       projectRootPath: resolvedProjectRecord?.rootPath ?? workspace.cwd,
+      ...browserDefaultUrl,
       workspaceDirectory: workspace.cwd,
       worktreeSlug,
       projectKind: (resolvedProjectRecord?.kind ?? "directory") === "git" ? "git" : "non_git",
@@ -5596,6 +5607,10 @@ export class Session {
     result: CreatePaseoWorktreeResult,
   ): Promise<WorkspaceDescriptorPayload> {
     const projectRecord = await this.projectRegistry.get(result.workspace.projectId);
+    const browserDefaultUrl = buildBrowserDefaultUrlProjection(
+      result.workspace.cwd,
+      this.sessionLogger,
+    );
     return {
       id: result.workspace.workspaceId,
       projectId: result.workspace.projectId,
@@ -5605,6 +5620,7 @@ export class Session {
       projectCustomName: projectRecord?.customName ?? null,
       projectCustomIconRevision: projectRecord?.customIconRevision ?? null,
       projectRootPath: projectRecord?.rootPath ?? result.repoRoot,
+      ...browserDefaultUrl,
       workspaceDirectory: result.workspace.cwd,
       worktreeSlug: basename(result.worktree.worktreePath),
       projectKind: projectRecord?.kind ?? "git",

@@ -80,6 +80,7 @@ import {
 } from "./browser-automation/rpc-schemas.js";
 import { BrowserAutomationHostCapabilitySchema } from "./browser-automation/capabilities.js";
 import {
+  PaseoBrowserDefaultUrlSchema,
   PaseoConfigRawSchema,
   PaseoLifecycleCommandRawSchema,
   PaseoMetadataGenerationEntrySchema,
@@ -96,6 +97,7 @@ import {
   type ProjectConfigRpcError,
 } from "./paseo-config-schema.js";
 export {
+  PaseoBrowserDefaultUrlSchema,
   PaseoConfigRawSchema,
   PaseoLifecycleCommandRawSchema,
   PaseoMetadataGenerationEntrySchema,
@@ -3978,6 +3980,8 @@ export const WorkspaceDescriptorPayloadSchema = z
     // COMPAT(projectCustomIcon): added in v0.2.0, remove after 2027-01-20.
     projectCustomIconRevision: z.string().nullable().optional(),
     projectRootPath: z.string(),
+    // COMPAT(browserDefaultUrl): added in v0.9.0, remove optional after 2027-03-21.
+    browserDefaultUrl: PaseoBrowserDefaultUrlSchema.optional(),
     workspaceDirectory: z.string().optional(),
     // COMPAT(worktreeSlug): added in v0.2.6, remove optional after 2027-01-31.
     // Present only for Paseo-owned worktrees; this is the basename of their root directory.

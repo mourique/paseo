@@ -33,6 +33,22 @@ describe("paseo config schema", () => {
     });
   });
 
+  it("rejects an invalid browser default URL", () => {
+    expect(() =>
+      PaseoConfigRawSchema.parse({
+        browser: { defaultUrl: "not a URL" },
+      }),
+    ).toThrow();
+  });
+
+  it("rejects a browser default URL with an unsupported protocol", () => {
+    expect(() =>
+      PaseoConfigRawSchema.parse({
+        browser: { defaultUrl: "file:///tmp/index.html" },
+      }),
+    ).toThrow("URL must use http or https");
+  });
+
   it("parses service port allocation", () => {
     expect(
       PaseoConfigSchema.parse({

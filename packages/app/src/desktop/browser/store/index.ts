@@ -26,7 +26,7 @@ export {
 } from "./state";
 
 interface BrowserStoreState extends BrowserIndexState {
-  createBrowser: (input?: { initialUrl?: string }) => string;
+  createBrowser: (input?: { initialUrl?: string; defaultUrl?: string }) => string;
   updateBrowser: (browserId: string, patch: BrowserRecordPatch) => void;
   setBrowserViewport: (browserId: string, viewport: BrowserViewport) => void;
   removeBrowser: (browserId: string) => void;
@@ -52,6 +52,7 @@ export const useBrowserStore = create<BrowserStoreState>()(
         const record = createBrowserRecord({
           browserId,
           initialUrl: input?.initialUrl,
+          defaultUrl: input?.defaultUrl,
           now: Date.now(),
         });
 
@@ -94,7 +95,7 @@ export function getBrowserRecord(browserId: string): BrowserRecord | null {
   return useBrowserStore.getState().browsersById[normalizedBrowserId] ?? null;
 }
 
-export function createWorkspaceBrowser(input?: { initialUrl?: string }): {
+export function createWorkspaceBrowser(input?: { initialUrl?: string; defaultUrl?: string }): {
   browserId: string;
   url: string;
 } {
@@ -102,7 +103,7 @@ export function createWorkspaceBrowser(input?: { initialUrl?: string }): {
   const record = getBrowserRecord(browserId);
   return {
     browserId,
-    url: record?.url ?? normalizeBrowserUrl(input?.initialUrl),
+    url: record?.url ?? normalizeBrowserUrl(input?.initialUrl ?? input?.defaultUrl),
   };
 }
 

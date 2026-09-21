@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import type { BrowserToolsBroker, BrowserToolsExecuteInput } from "./broker.js";
@@ -604,6 +607,36 @@ describe("registerBrowserTools", () => {
         text: `Created browser tab browserId=${BROWSER_ID} url=https://example.com. Use this browserId for tab-scoped browser tools.`,
       },
     ]);
+  });
+
+  test("new tab uses the workspace browser default when the URL is omitted", async () => {
+    const workspaceDirectory = mkdtempSync(join(tmpdir(), "paseo-browser-tool-default-"));
+    writeFileSync(
+      join(workspaceDirectory, "paseo.json"),
+      `${JSON.stringify({ browser: { defaultUrl: "https://app.example.test" } })}\n`,
+    );
+
+    try {
+      const harness = new BrowserToolHarness({
+        id: "agent-1",
+        cwd: workspaceDirectory,
+        workspaceId: "wks_workspace_a",
+      });
+      harness.broker.setResponse(newTabPayload());
+
+      await harness.execute("browser_new_tab", {});
+
+      expect(harness.broker.calls).toEqual([
+        {
+          agentId: "agent-1",
+          cwd: workspaceDirectory,
+          workspaceId: "wks_workspace_a",
+          command: { command: "new_tab", args: { url: "https://app.example.test" } },
+        },
+      ]);
+    } finally {
+      rmSync(workspaceDirectory, { recursive: true, force: true });
+    }
   });
 
   test.each([

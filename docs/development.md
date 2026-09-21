@@ -371,7 +371,23 @@ exact ref also resolves through its stored branch name.
 
 Worktrees inherit committed Git state only; uncommitted source-checkout changes are not copied.
 
-## paseo.json service scripts
+## Project paseo.json
+
+### Browser default URL
+
+Set `browser.defaultUrl` to the absolute HTTP or HTTPS URL that a new workspace browser tab should open:
+
+```json
+{
+  "browser": {
+    "defaultUrl": "https://app.example.test"
+  }
+}
+```
+
+The project default applies only when no URL was supplied. Link opens and `browser_new_tab` calls with an explicit URL keep that URL. Projects without a default open `https://example.com`.
+
+### Worktree lifecycle and service scripts
 
 `worktree.setup` and `worktree.teardown` accept either a multiline shell script or an array
 of commands. Both run sequentially.

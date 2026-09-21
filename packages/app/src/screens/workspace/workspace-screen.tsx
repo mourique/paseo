@@ -220,6 +220,10 @@ function getWorkspaceScripts(
   return workspaceDescriptor?.scripts ?? EMPTY_WORKSPACE_SCRIPTS;
 }
 
+function getBrowserDefaultUrl(workspace: WorkspaceDescriptor | null): string | undefined {
+  return workspace?.browserDefaultUrl;
+}
+
 interface WorkspaceFileLocationFields {
   path: string | null;
   lineStart?: number;
@@ -1555,6 +1559,7 @@ function WorkspaceScreenContent({
     [workspaceId],
   );
   const workspaceDescriptor = useWorkspace(normalizedServerId, normalizedWorkspaceId);
+  const browserDefaultUrl = getBrowserDefaultUrl(workspaceDescriptor);
   useEffect(() => {
     if (!normalizedServerId || !normalizedWorkspaceId || workspaceDescriptor) return;
     void getHostRuntimeStore()
@@ -2404,14 +2409,14 @@ function WorkspaceScreenContent({
       if (!persistenceKey || !getIsElectron()) {
         return;
       }
-      const { browserId } = createWorkspaceBrowser();
+      const { browserId } = createWorkspaceBrowser({ defaultUrl: browserDefaultUrl });
       openWorkspaceTabFocused(
         persistenceKey,
         { kind: "browser", browserId },
         paneLocalPlacement(input?.paneId),
       );
     },
-    [openWorkspaceTabFocused, persistenceKey],
+    [browserDefaultUrl, openWorkspaceTabFocused, persistenceKey],
   );
 
   const handleCreateNewTab = useCallback(
@@ -2454,10 +2459,16 @@ function WorkspaceScreenContent({
         });
         return;
       }
-      const { browserId } = createWorkspaceBrowser();
+      const { browserId } = createWorkspaceBrowser({ defaultUrl: browserDefaultUrl });
       openTarget({ kind: "browser", browserId });
     },
-    [createTerminal, createWorkspaceTab, persistenceKey, replaceWorkspaceTabTarget],
+    [
+      browserDefaultUrl,
+      createTerminal,
+      createWorkspaceTab,
+      persistenceKey,
+      replaceWorkspaceTabTarget,
+    ],
   );
 
   const handleOpenUrlInBrowserTab = useCallback(
