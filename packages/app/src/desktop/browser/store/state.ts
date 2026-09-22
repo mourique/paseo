@@ -107,12 +107,11 @@ export function normalizeBrowserUrl(value: string | null | undefined): string {
 export function createBrowserRecord(input: {
   browserId: string;
   initialUrl: string | null | undefined;
-  defaultUrl?: string;
   now: number;
 }): BrowserRecord {
   return {
     browserId: input.browserId,
-    url: normalizeBrowserUrl(input.initialUrl ?? input.defaultUrl),
+    url: normalizeBrowserUrl(input.initialUrl),
     title: "",
     isLoading: false,
     canGoBack: false,

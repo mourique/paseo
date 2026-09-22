@@ -43,24 +43,6 @@ describe("normalizeBrowserUrl", () => {
 });
 
 describe("createBrowserRecord", () => {
-  it("uses the project default only when an explicit URL is absent", () => {
-    const fromProjectDefault = createBrowserRecord({
-      browserId: "b1",
-      initialUrl: undefined,
-      defaultUrl: "https://project.example.test",
-      now: 1000,
-    });
-    const fromExplicitUrl = createBrowserRecord({
-      browserId: "b2",
-      initialUrl: "https://explicit.example.test",
-      defaultUrl: "https://project.example.test",
-      now: 1000,
-    });
-
-    expect(fromProjectDefault.url).toBe("https://project.example.test");
-    expect(fromExplicitUrl.url).toBe("https://explicit.example.test");
-  });
-
   it("normalizes the initial URL and starts with idle state", () => {
     const record = createBrowserRecord({
       browserId: "b1",

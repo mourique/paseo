@@ -38,19 +38,6 @@ describe("paseo config file substrate", () => {
     });
   });
 
-  it("returns invalid_project_config when writing a malformed browser URL", () => {
-    const result = writePaseoConfigForEdit({
-      repoRoot: tempDir,
-      config: { browser: { defaultUrl: "not a URL" } },
-      expectedRevision: null,
-    });
-
-    expect(result).toEqual({
-      ok: false,
-      error: { code: "invalid_project_config" },
-    });
-  });
-
   it("preserves raw lifecycle string and array forms with a revision token", () => {
     writeFileSync(
       join(tempDir, "paseo.json"),

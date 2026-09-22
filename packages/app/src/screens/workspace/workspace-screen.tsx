@@ -2409,7 +2409,7 @@ function WorkspaceScreenContent({
       if (!persistenceKey || !getIsElectron()) {
         return;
       }
-      const { browserId } = createWorkspaceBrowser({ defaultUrl: browserDefaultUrl });
+      const { browserId } = createWorkspaceBrowser({ initialUrl: browserDefaultUrl });
       openWorkspaceTabFocused(
         persistenceKey,
         { kind: "browser", browserId },
@@ -2459,7 +2459,7 @@ function WorkspaceScreenContent({
         });
         return;
       }
-      const { browserId } = createWorkspaceBrowser({ defaultUrl: browserDefaultUrl });
+      const { browserId } = createWorkspaceBrowser({ initialUrl: browserDefaultUrl });
       openTarget({ kind: "browser", browserId });
     },
     [
