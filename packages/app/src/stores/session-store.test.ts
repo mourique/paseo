@@ -497,28 +497,6 @@ describe("normalizeWorkspaceDescriptor", () => {
     expect(workspace.scripts).not.toBe(scripts);
   });
 
-  it("preserves the project browser default URL", () => {
-    const workspace = normalizeWorkspaceDescriptor({
-      id: "1",
-      projectId: "1",
-      projectDisplayName: "Project 1",
-      projectRootPath: "/repo",
-      browserDefaultUrl: "https://app.example.test",
-      workspaceDirectory: "/repo",
-      projectKind: "git",
-      workspaceKind: "checkout",
-      name: "main",
-      archivingAt: null,
-      status: "done",
-      statusEnteredAt: null,
-      activityAt: null,
-      diffStat: null,
-      scripts: [],
-    });
-
-    expect(workspace.browserDefaultUrl).toBe("https://app.example.test");
-  });
-
   it("canonicalizes the workspace directory and treats a blank one as empty", () => {
     const canonical = normalizeWorkspaceDescriptor({
       id: "1",

@@ -1211,12 +1211,6 @@ export function createPaseoToolCatalog(options: PaseoToolHostDependencies): Pase
       broker: options.browserToolsBroker,
       callerAgentId,
       resolveCallerAgent,
-      resolveWorkspaceDirectory: async (workspaceId) => {
-        if (!workspaceId || !options.workspaceRegistry) {
-          return null;
-        }
-        return (await options.workspaceRegistry.get(workspaceId))?.cwd ?? null;
-      },
     });
   }
 

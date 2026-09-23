@@ -375,7 +375,7 @@ Worktrees inherit committed Git state only; uncommitted source-checkout changes 
 
 ### Browser default URL
 
-Set `browser.defaultUrl` to the absolute HTTP or HTTPS URL that a new workspace browser tab should open:
+Set `browser.defaultUrl` to the absolute HTTP or HTTPS URL that a browser tab created from the workspace GUI should open:
 
 ```json
 {
@@ -385,7 +385,7 @@ Set `browser.defaultUrl` to the absolute HTTP or HTTPS URL that a new workspace 
 }
 ```
 
-The project default applies only when no URL was supplied. Link opens and `browser_new_tab` calls with an explicit URL keep that URL. Projects without a default open `https://example.com`.
+The app reads this value from the active workspace's `paseo.json`, including a worktree. It applies only to browser tabs created from the GUI. Link opens and `browser_new_tab` calls do not use it. Workspaces without a default open `https://example.com`.
 
 ### Worktree lifecycle and service scripts
 

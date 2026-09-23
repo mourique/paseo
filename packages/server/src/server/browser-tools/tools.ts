@@ -7,7 +7,6 @@ import type {
   PaseoToolExecutionContext,
   PaseoToolResult,
 } from "../agent/tools/types.js";
-import { readPaseoConfig } from "../../utils/worktree.js";
 
 interface CallerAgentContext {
   id: string;
@@ -28,7 +27,6 @@ export interface RegisterBrowserToolsOptions {
   broker: Pick<BrowserToolsBroker, "execute">;
   callerAgentId?: string;
   resolveCallerAgent: () => CallerAgentContext | null;
-  resolveWorkspaceDirectory: (workspaceId: string | undefined) => Promise<string | null>;
 }
 
 const HTTP_URL_ONLY_MESSAGE = "URL must use http/https only";
@@ -109,15 +107,13 @@ export function registerBrowserTools(options: RegisterBrowserToolsOptions): void
       if (missingWorkspace) {
         return missingWorkspace;
       }
-      const workspaceDirectory = await options.resolveWorkspaceDirectory(context.workspaceId);
-      const defaultUrl = url ?? readBrowserDefaultUrl(workspaceDirectory ?? context.cwd);
       const payload = await options.broker.execute({
         agentId: context.agentId,
         cwd: context.cwd,
         ...(context.workspaceId ? { workspaceId: context.workspaceId } : {}),
         command: {
           command: "new_tab",
-          args: defaultUrl ? { url: defaultUrl } : {},
+          args: url ? { url } : {},
         },
       });
       return browserToolResult({ payload, context });
@@ -720,14 +716,6 @@ function resolveBrowserToolContext(options: RegisterBrowserToolsOptions): {
     ...(callerAgent?.cwd ? { cwd: callerAgent.cwd } : {}),
     ...(callerAgent?.workspaceId ? { workspaceId: callerAgent.workspaceId } : {}),
   };
-}
-
-function readBrowserDefaultUrl(cwd: string | undefined): string | undefined {
-  if (!cwd) {
-    return undefined;
-  }
-  const paseoConfig = readPaseoConfig(cwd);
-  return paseoConfig.ok ? paseoConfig.config?.browser?.defaultUrl : undefined;
 }
 
 function normalizeHttpUrlInput(value: string): string | null {

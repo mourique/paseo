@@ -33,20 +33,12 @@ describe("paseo config schema", () => {
     });
   });
 
-  it("reports an invalid browser default URL without throwing", () => {
-    const parsed = PaseoConfigRawSchema.safeParse({
-      browser: { defaultUrl: "not a URL" },
-    });
+  it("preserves browser config without narrowing the raw wire shape", () => {
+    const config = {
+      browser: { defaultUrl: "file:///tmp/index.html", vendorOption: true },
+    };
 
-    expect(parsed.success).toBe(false);
-  });
-
-  it("rejects a browser default URL with an unsupported protocol", () => {
-    expect(() =>
-      PaseoConfigRawSchema.parse({
-        browser: { defaultUrl: "file:///tmp/index.html" },
-      }),
-    ).toThrow("URL must use http or https");
+    expect(PaseoConfigRawSchema.parse(config)).toEqual(config);
   });
 
   it("parses service port allocation", () => {

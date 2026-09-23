@@ -88,7 +88,6 @@ export const PaseoConfigRawSchema = z
   .object({
     worktree: PaseoWorktreeConfigRawSchema.optional(),
     scripts: z.record(z.string(), PaseoScriptEntryRawSchema).optional(),
-    browser: PaseoBrowserConfigSchema.optional(),
     metadataGeneration: PaseoMetadataGenerationSchema.optional(),
   })
   .passthrough();

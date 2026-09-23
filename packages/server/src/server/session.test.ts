@@ -82,7 +82,6 @@ interface SessionHandlerInternals {
   handleCheckoutStatusRequest(params: unknown): Promise<unknown>;
   describeWorkspaceRecord(...args: unknown[]): Promise<WorkspaceDescriptorPayload>;
   describeWorkspaceRecordWithGitData(...args: unknown[]): Promise<WorkspaceDescriptorPayload>;
-  describeCreatedWorktreeWorkspace(...args: unknown[]): Promise<WorkspaceDescriptorPayload>;
   handleValidateBranchRequest(params: unknown): Promise<unknown>;
   handleCheckoutSwitchBranchRequest(params: unknown): Promise<unknown>;
   handleBranchSuggestionsRequest(params: unknown): Promise<unknown>;
@@ -4158,76 +4157,6 @@ describe("session workspace descriptors", () => {
     expect(checkoutGitMocks.getCachedCheckoutShortstat).not.toHaveBeenCalled();
     expect(checkoutGitMocks.warmCheckoutShortstatInBackground).not.toHaveBeenCalled();
     expect(descriptor.diffStat).toEqual({ additions: 7, deletions: 2 });
-  });
-
-  test("projects the browser default URL from the workspace paseo.json", async () => {
-    const workspaceDirectory = realpathSync(
-      mkdtempSync(join(tmpdir(), "paseo-browser-default-url-")),
-    );
-    writeFileSync(
-      join(workspaceDirectory, "paseo.json"),
-      `${JSON.stringify({ browser: { defaultUrl: "https://app.example.test" } })}\n`,
-    );
-
-    try {
-      const session = createSessionForTest({
-        workspaceGitService: {
-          getSnapshot: vi.fn(),
-          peekSnapshot: vi.fn(() => null),
-        },
-      });
-      const descriptor = await asSessionInternals(session).describeWorkspaceRecord(
-        {
-          workspaceId: "workspace-browser-default",
-          projectId: "project-browser-default",
-          cwd: workspaceDirectory,
-          kind: "checkout",
-          displayName: "Workspace",
-        },
-        {
-          projectId: "project-browser-default",
-          rootPath: workspaceDirectory,
-          displayName: "Project",
-          kind: "git",
-        },
-      );
-
-      expect(descriptor.browserDefaultUrl).toBe("https://app.example.test");
-    } finally {
-      rmSync(workspaceDirectory, { recursive: true, force: true });
-    }
-  });
-
-  test("projects the browser default URL when a worktree is first created", async () => {
-    const workspaceDirectory = realpathSync(
-      mkdtempSync(join(tmpdir(), "paseo-created-browser-default-url-")),
-    );
-    writeFileSync(
-      join(workspaceDirectory, "paseo.json"),
-      `${JSON.stringify({ browser: { defaultUrl: "https://created.example.test" } })}\n`,
-    );
-
-    try {
-      const session = createSessionForTest();
-      const descriptor = await asSessionInternals(session).describeCreatedWorktreeWorkspace({
-        worktree: { branchName: "feature", worktreePath: workspaceDirectory },
-        workspace: {
-          workspaceId: "workspace-created-browser-default",
-          projectId: "project-created-browser-default",
-          cwd: workspaceDirectory,
-          kind: "worktree",
-          displayName: "feature",
-          createdAt: "2026-09-21T00:00:00.000Z",
-        },
-        repoRoot: workspaceDirectory,
-        intent: {},
-        created: true,
-      });
-
-      expect(descriptor.browserDefaultUrl).toBe("https://created.example.test");
-    } finally {
-      rmSync(workspaceDirectory, { recursive: true, force: true });
-    }
   });
 
   test("does not cold-load git data while describing a workspace", async () => {

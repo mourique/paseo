@@ -681,25 +681,6 @@ describe("workspace message schemas", () => {
     expect(parsed.worktreeSlug).toBe("feature");
   });
 
-  test("preserves a project browser default URL", () => {
-    const parsed = WorkspaceDescriptorPayloadSchema.parse({
-      id: "browser-default",
-      projectId: "project",
-      projectDisplayName: "repo",
-      projectRootPath: "/repo",
-      workspaceDirectory: "/repo",
-      projectKind: "git",
-      workspaceKind: "local_checkout",
-      name: "repo",
-      status: "done",
-      activityAt: null,
-      scripts: [],
-      browserDefaultUrl: "https://app.example.test",
-    });
-
-    expect(parsed.browserDefaultUrl).toBe("https://app.example.test");
-  });
-
   test("defaults omitted workspace archiving state and preserves present timestamps", () => {
     const baseWorkspace = {
       id: "ws-archiving",

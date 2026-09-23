@@ -173,7 +173,7 @@ function browserNewTabRequest(): BrowserAutomationExecuteRequest {
     workspaceId: "wks_workspace_a",
     command: {
       command: "new_tab",
-      args: { url: "https://example.com" },
+      args: {},
     },
   };
 }
@@ -282,7 +282,7 @@ describe("mountBrowserAutomationHandler", () => {
     useWorkspaceLayoutStore.setState({ layoutByWorkspace: {} });
   });
 
-  test("browser_new_tab creates a workspace browser tab without stealing focus", async () => {
+  test("browser_new_tab without a URL uses the automation fallback without stealing focus", async () => {
     const browser = new BrowserAutomationHandlerHarness();
     const workspaceKey = buildWorkspaceTabPersistenceKey({
       serverId: "server-1",
