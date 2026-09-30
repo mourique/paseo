@@ -33,6 +33,14 @@ describe("paseo config schema", () => {
     });
   });
 
+  it("preserves browser config without narrowing the raw wire shape", () => {
+    const config = {
+      browser: { defaultUrl: "file:///tmp/index.html", vendorOption: true },
+    };
+
+    expect(PaseoConfigRawSchema.parse(config)).toEqual(config);
+  });
+
   it("parses service port allocation", () => {
     expect(
       PaseoConfigSchema.parse({
@@ -53,6 +61,23 @@ describe("paseo config schema", () => {
     expect(() =>
       PaseoConfigRawSchema.parse({ worktree: { servicePorts: { range: "4000-3000" } } }),
     ).toThrow("Expected an inclusive TCP port range");
+  });
+
+  it("drops an invalid browser default without dropping valid runtime config", () => {
+    expect(
+      PaseoConfigSchema.parse({
+        browser: { defaultUrl: "file:///tmp/index.html" },
+        worktree: { setup: "npm install" },
+        scripts: {
+          dev: { type: "service", command: "npm run dev" },
+        },
+      }),
+    ).toEqual({
+      worktree: { setup: ["npm install"], teardown: [] },
+      scripts: {
+        dev: { type: "service", command: "npm run dev" },
+      },
+    });
   });
 
   it("normalizes partial worktree lifecycle config without dropping present commands", () => {

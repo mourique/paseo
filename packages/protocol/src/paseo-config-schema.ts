@@ -59,6 +59,19 @@ export const PaseoMetadataGenerationEntrySchema = z
   .passthrough()
   .catch({});
 
+export const PaseoBrowserDefaultUrlSchema = z
+  .string()
+  .url()
+  .refine((value) => /^https?:\/\//i.test(value), {
+    message: "URL must use http or https",
+  });
+
+export const PaseoBrowserConfigSchema = z
+  .object({
+    defaultUrl: PaseoBrowserDefaultUrlSchema.optional(),
+  })
+  .passthrough();
+
 export const PaseoMetadataGenerationSchema = z
   .object({
     title: PaseoMetadataGenerationEntrySchema.optional(),
@@ -91,6 +104,7 @@ export const ScriptEntrySchema = PaseoScriptEntryRawSchema.catch({});
 export const PaseoConfigSchema = PaseoConfigRawSchema.extend({
   worktree: WorktreeConfigSchema.optional(),
   scripts: z.record(z.string(), ScriptEntrySchema).optional().catch({}),
+  browser: PaseoBrowserConfigSchema.optional().catch(undefined),
   metadataGeneration: PaseoMetadataGenerationSchema.optional(),
 })
   .passthrough()

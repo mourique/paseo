@@ -110,6 +110,7 @@ import { useArchiveAgent } from "@/hooks/use-archive-agent";
 import { useStableEvent } from "@/hooks/use-stable-event";
 import { removeResidentBrowserWebview } from "@/desktop/browser/resident-webviews";
 import { createWorkspaceBrowser, useBrowserStore } from "@/desktop/browser/store";
+import { useWorkspaceBrowserDefaultUrlResolver } from "@/desktop/browser/default-url";
 import { getDesktopHost } from "@/desktop/host";
 import { buildProviderCommand } from "@/utils/provider-command-templates";
 import { generateDraftId } from "@/stores/draft-keys";
@@ -1579,6 +1580,12 @@ function WorkspaceScreenContent({
     (state) => state.sessions[normalizedServerId]?.serverInfo?.features?.providersSnapshot === true,
   );
   const workspaceDirectory = workspaceDescriptor?.workspaceDirectory || null;
+  const resolveBrowserDefaultUrl = useWorkspaceBrowserDefaultUrlResolver({
+    client,
+    enabled: getIsElectron(),
+    serverId: normalizedServerId,
+    workspaceDirectory,
+  });
   const isMissingWorkspaceDirectory = Boolean(workspaceDescriptor) && !workspaceDirectory;
   const [isImportSheetVisible, setIsImportSheetVisible] = useState(false);
   const canOpenImportSheet = [client, isConnected, workspaceDirectory].every(Boolean);
@@ -2399,19 +2406,26 @@ function WorkspaceScreenContent({
     [createTerminal],
   );
 
+  const createDefaultBrowser = useStableEvent(async (openBrowser: (browserId: string) => void) => {
+    const initialUrl = await resolveBrowserDefaultUrl();
+    const { browserId } = createWorkspaceBrowser({ initialUrl });
+    openBrowser(browserId);
+  });
+
   const handleCreateBrowserTab = useCallback(
     (input?: { paneId?: string }) => {
       if (!persistenceKey || !getIsElectron()) {
         return;
       }
-      const { browserId } = createWorkspaceBrowser();
-      openWorkspaceTabFocused(
-        persistenceKey,
-        { kind: "browser", browserId },
-        paneLocalPlacement(input?.paneId),
-      );
+      void createDefaultBrowser((browserId) => {
+        openWorkspaceTabFocused(
+          persistenceKey,
+          { kind: "browser", browserId },
+          paneLocalPlacement(input?.paneId),
+        );
+      });
     },
-    [openWorkspaceTabFocused, persistenceKey],
+    [createDefaultBrowser, openWorkspaceTabFocused, persistenceKey],
   );
 
   const handleCreateNewTab = useCallback(
@@ -2454,10 +2468,17 @@ function WorkspaceScreenContent({
         });
         return;
       }
-      const { browserId } = createWorkspaceBrowser();
-      openTarget({ kind: "browser", browserId });
+      void createDefaultBrowser((browserId) => {
+        openTarget({ kind: "browser", browserId });
+      });
     },
-    [createTerminal, createWorkspaceTab, persistenceKey, replaceWorkspaceTabTarget],
+    [
+      createDefaultBrowser,
+      createTerminal,
+      createWorkspaceTab,
+      persistenceKey,
+      replaceWorkspaceTabTarget,
+    ],
   );
 
   const handleOpenUrlInBrowserTab = useCallback(
