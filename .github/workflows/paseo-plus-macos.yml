@@ -1,0 +1,51 @@
+name: Paseo Plus macOS
+
+on:
+  push:
+    branches: ["build/paseo-plus"]
+
+permissions:
+  contents: read
+
+jobs:
+  build-arm64:
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - uses: actions/checkout@v4
+        with:
+          repository: cleiter/desvio
+          ref: 9b41261f55e50317060401a3a0c3e2c23d4af563
+          path: .desvio
+      - name: Build and ad-hoc sign Paseo Plus
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_id=$(node scripts/paseo-plus-release-id.mjs "$GITHUB_WORKSPACE")
+          printf 'RELEASE_ID=%s\n' "$release_id" >> "$GITHUB_ENV"
+          CSC_IDENTITY_AUTO_DISCOVERY=false \
+          DESVIO_WORKTREE="$GITHUB_WORKSPACE" \
+          DESVIO_CONFIG_FILE="$GITHUB_WORKSPACE/.desvio/examples/paseo/desvio.conf" \
+          PASEO_PACKAGE_VERSION="$release_id" \
+          PASEO_PRODUCT_NAME="Paseo Plus" \
+          PASEO_LOGO_PLUS=0 \
+            "$GITHUB_WORKSPACE/.desvio/examples/paseo/package.sh"
+          app="packages/desktop/release/mac-arm64/Paseo Plus.app"
+          test -d "$app"
+          test -z "$(find "$app" -name app-update.yml -print -quit)"
+          codesign --verify --deep --strict "$app"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$app" "Paseo-Plus-${release_id}-arm64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Paseo-Plus-${{ env.RELEASE_ID }}-arm64
+          path: Paseo-Plus-${{ env.RELEASE_ID }}-arm64.zip
+          if-no-files-found: error
+          retention-days: 14
